@@ -6,6 +6,16 @@ This Wrapper could help our customers to automate their pipelines, improve integ
 
 I have created some scripts using this wrapper for different proposes, and I'm sharing with all of you, so you can have some ideas how to use it.
 
+# Important
+
+Appdynamics Internal APIs (RestUI) are not supported by Appdynamics, only the public APIs, so if it broke in future versions or older versions, please let me know, so I and others contributors can try solve the problem.
+
+I tested only in controller versions: 4.5.15, 4.5.16 and 4.5.17
+
+For future versions we will try to solve internal api changes as fast as we can, but there is no SLA and time to solve, so create a issue and we will try to help you.
+
+> This Wrapper was developed by Diego Pereira from Appdynamics PS Team and it is not supported by Appdynamics.
+
 # Installation
 
 Note that you only need to put the file **Appdynamics.psm1** inside your script folder to use the Module.
