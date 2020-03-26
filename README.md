@@ -1,0 +1,1 @@
+# appdynamics-powershell-core-wrapper
