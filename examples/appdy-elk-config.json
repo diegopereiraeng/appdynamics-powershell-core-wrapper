@@ -1,0 +1,17 @@
+{
+    "controller_address" : "https://customer.saas.appdynamics.com",
+    "authorization" : "Basic ",
+    "elk_host_port" : "http://elk-diego-endpoint.domain.com:5000",
+    "collect_metrics_last_mins" : 60,
+    "metricPaths" : [
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Process CPU Usage %",
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Memory|Heap|Used %",
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Garbage Collection|GC Time Spent Per Min (ms)",
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Threads|Current No. of Threads",
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Memory|Non-Heap|Current Usage (MB)",
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Memory|Heap|Current Usage (MB)",
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Garbage Collection|Number of Minor Collections Per Min",
+        "Application Infrastructure Performance|*|Individual Nodes|*|JVM|Garbage Collection|Number of Major Collections Per Min"
+    ]
+}
+
