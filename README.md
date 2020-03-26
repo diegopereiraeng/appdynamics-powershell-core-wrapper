@@ -14,19 +14,19 @@ Note that you only need to put the file **Appdynamics.psm1** inside your script 
 
 ## Simple Rest
 
-Using module './Appdynamics.psm1'
+    Using module './Appdynamics.psm1'
 
-$auth = Get-AuthorizationHeader -pair "user@account:password"
+    $auth = Get-AuthorizationHeader -pair "user@account:password"
 
-$appdy = [Appdynamics]::new("https://customer.saas.appdynamics.com",$auth)
+    $appdy = [Appdynamics]::new("https://customer.saas.appdynamics.com",$auth)
 
-$appID = $appdy.GetAppID("APP_NAME")
+    $appID = $appdy.GetAppID("APP_NAME")
 
-Write-Host "AppID : $appID"
+    Write-Host "AppID : $appID"
 
-$tierID = $appdy.GetTierID($appID, "XP.FixedIncome.Asset.Web")
+    $tierID = $appdy.GetTierID($appID, "XP.FixedIncome.Asset.Web")
 
-appdy.SendEvent("New Deployment Diego", "This is a test", "INFO", "VSTS", $tierName, $appID,$tierID)
+    appdy.SendEvent("New Deployment Diego", "This is a test", "INFO", "VSTS", $tierName, $appID,$tierID)
 
 
 ## Simple Rest-UI
