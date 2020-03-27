@@ -211,3 +211,5 @@ Note that you only need to put the file **Appdynamics.psm1** inside your script 
 ## UploadDashboard - Arguments: [string]\$filePath - Return: [bool]
 
 ## UploadDashboardFile - Arguments: [String]\$fileEnc - Return: [bool]
+
+>We don't know everything, so I created this to be a tool not only for me, but for everyone, and if the code are not good, help me to improve that, I will try to help as much as possible! =D
