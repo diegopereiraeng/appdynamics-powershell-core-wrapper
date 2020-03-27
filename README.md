@@ -34,7 +34,7 @@ Note that you only need to put the file **Appdynamics.psm1** inside your script 
 
 	Write-Host "AppID : $appID"
 
-	$tierID = $appdy.GetTierID($appID, "XP.FixedIncome.Asset.Web")
+	$tierID = $appdy.GetTierID($appID, "Fixed-Income")
 
 	appdy.SendEvent("New Deployment Diego", "This is a test", "INFO", "VSTS", $tierName, $appID,$tierID)
 
@@ -125,7 +125,7 @@ Note that you only need to put the file **Appdynamics.psm1** inside your script 
 
 	Write-Host "Exporting to CSV"
 
-	$report | Export-Csv '/Users/dieperei/Documents/Development/Powershell/tiers4.csv' -delimiter "," -force -notypeinformation
+	$report | Export-Csv 'Powershell/tiers4.csv' -delimiter "," -force -notypeinformation
 
 # ALL Methods
 
