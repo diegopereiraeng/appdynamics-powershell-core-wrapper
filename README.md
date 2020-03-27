@@ -59,7 +59,7 @@ Note that you only need to put the file **Appdynamics.psm1** inside your script 
 
 	$tierID = $appdy.CreateTierNET($appID,$tierName)
 
-	$appdy.GetTiers("21086")
+	$appdy.GetTiers("24386")
 
 	$appdy.GetNodes($app.id)
 
@@ -125,7 +125,7 @@ Note that you only need to put the file **Appdynamics.psm1** inside your script 
 
 	Write-Host "Exporting to CSV"
 
-	$report | Export-Csv 'Powershell/tiers4.csv' -delimiter "," -force -notypeinformation
+	$report | Export-Csv 'Powershell/tiersScoreCard.csv' -delimiter "," -force -notypeinformation
 
 # ALL Methods
 
