@@ -505,6 +505,30 @@ Function Job1 { $function:Job1  }
         return [xml]::new()
 
     }
+    [System.Object[]] GetApplicationsJSON (){
+        $url = $this.baseurl+"/controller/rest/applications"+"?output=JSON"
+
+        try
+        {
+            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -Method Get -ContentType 'text/xml' -UseBasicParsing
+            $content = $responseData.content
+            $apps = ($content | ConvertFrom-Json)
+            #[xml]$apps = $content
+            return $apps
+        }
+        catch
+        {
+            $StatusCode = $_.Exception.Response.StatusCode.value__
+            #DEBUG#Write-Host $_.Exception.Response
+            #DEBUG#Write-Host $_.Exception.Message
+            #DEBUG#Write-Host "Error getting apps : $StatusCode"
+            #DEBUG#Write-Host $url
+            #DEBUG#Write-Host $this.headers["Authorization"]
+            return @()
+        }
+        return [xml]::new()
+
+    }
     [System.Object[]] GetTiers ($appID){
         $appID = [uri]::EscapeDataString($appID)
         $url = $this.baseurl+"/controller/rest/applications/$appID/tiers"#+"?output=JSON"
@@ -580,7 +604,7 @@ Function Job1 { $function:Job1  }
         return [System.Object]::new()
 
     }
-    [bool]DeleteNode ([string]$node){
+    [bool] DeleteNode ([string]$node){
         
         $url = $this.baseurl+"/controller/restui/nodeUiService/deleteNode/$node"#+"?output=JSON"
         try
@@ -604,7 +628,7 @@ Function Job1 { $function:Job1  }
         
 
     }
-    [bool]DeleteApplication ([string]$appID){
+    [bool] DeleteApplication ([string]$appID){
         
         $url = $this.baseurl+"/controller/restui/allApplications/deleteApplication"#+"?output=JSON"
         $body =  "$appID"
@@ -654,7 +678,7 @@ Function Job1 { $function:Job1  }
         return [xml]::new()
 
     }
-    [System.Object]GetNodeInfo ([string]$nodeID){
+    [System.Object] GetNodeInfo ([string]$nodeID){
         
         $url = $this.baseurl+"/controller/restui/nodeUiService/node/$nodeID"#+"?output=JSON"
         try
@@ -678,7 +702,7 @@ Function Job1 { $function:Job1  }
         
 
     }
-    [System.Object]GetNodeStatus ([string]$nodeID){
+    [System.Object] GetNodeStatus ([string]$nodeID){
         # Last 5 minutes
         $url = $this.baseurl+"/controller/restui/nodeUiService/getAgentAvailabilitySummaryForNode/"+$nodeID+"?timerange=last_5_minutes.BEFORE_NOW.-1.-1.5"#+"?output=JSON"
         try
@@ -701,15 +725,6 @@ Function Job1 { $function:Job1  }
         }
         
 
-    }
-    PrintXML ([xml]$xml){
-        $StringWriter = New-Object System.IO.StringWriter;
-        $XmlWriter = New-Object System.Xml.XmlTextWriter $StringWriter;
-        $XmlWriter.Formatting = "indented";
-        $xml.WriteTo($XmlWriter);
-        $XmlWriter.Flush();
-        $StringWriter.Flush();
-        #DEBUG#Write-Host $StringWriter.ToString();
     }
     [bool] GetFileToken (){
         $url = $this.baseurl+"/controller/restui/fileUpload/getFileToken"
@@ -1632,14 +1647,12 @@ Function Job1 { $function:Job1  }
     }
     [AppdynamicsMetrics] ParseMetrics($app,[xml]$metrics){
         #Write-Host $metrics | Out-String
-        #$this.PrintXML($metrics)
         [AppdynamicsMetrics]$appMetrics = [AppdynamicsMetrics]::new($app,@())
         try {
             #Write-Host $metrics | Out-String
             #$metrics2 = $metrics.'metric-datas'.'metric-data'
             $metrics2 = $metrics.SelectNodes('descendant::metric-datas/metric-data')
             #DEBUG#Write-Host $metrics2.count
-            #$this.PrintXML($metrics2)
             #$metrics.metricPath -match '(.*)\|(.*)'
             #$Matches[0]
             #Write-Host $Matches[1]
@@ -1649,7 +1662,6 @@ Function Job1 { $function:Job1  }
             if ($metrics2.count -gt 1) {
                 #DEBUG#Write-Host "GT 1"
                 foreach ($appMetric in $metrics2) {  
-                    #$this.PrintXML($appMetric)
                     $metricName = $appMetric.metricPath
 
                     #DEBUG#Write-Host $metricName
@@ -2014,7 +2026,6 @@ Function Job1 { $function:Job1  }
         return $appdynamicsMetricGroup
 
     }
-    
     [PSCustomObject] AppendSummaryMetrics ($metrics){
         foreach ($metric in $metrics.metrics.keys) {
 
@@ -2061,7 +2072,6 @@ Function Job1 { $function:Job1  }
         #Write-Host $metrics.metrics.GetType()
         return $metrics
     }
-
     [PSCustomObject] CreateTierReport ($metrics){
         $report = @()
         foreach ($metric in $metrics.metrics.keys) {
@@ -2543,4 +2553,51 @@ function Get-AuthorizationHeader{
     $base64 = [System.Convert]::ToBase64String($bytes)
     $basicAuthValue = "Basic $base64"
     return $basicAuthValue
+}
+
+function GetMetricsJSON($baseurl,$headers,[string]$app,$metricPath,$duration) {
+    
+    $metricPath = [uri]::EscapeDataString($metricPath)
+    $app2 = [uri]::EscapeDataString($app)    
+    $url = $baseurl+"/controller/rest/applications/$app2/metric-data?metric-path=$metricPath&time-range-type=BEFORE_NOW&duration-in-mins=$duration"+"&output=JSON"
+    #Write-Host $url
+    #$url | Out-File -Path ("Appdy_test"+$app2+".log") -Append
+    try
+    {
+        $responseData = Invoke-WebRequest -Uri $url -Headers $headers -Method Get -ContentType 'text/xml' -UseBasicParsing
+        $content = $responseData.content
+        #$content | Out-File -Path ("Appdy_test"+$app2+".log") -Append
+        [pscustomobject]$metrics = ([pscustomobject]($content | ConvertFrom-Json) | Where-Object {$_.metricName -ne "METRIC DATA NOT FOUND"})
+        #$metrics | ConvertTo-Json | Out-File -Path ("Appdy_test"+$app2+".log") -Append
+        if ($metrics -ne $NULL) {
+            $metrics | Add-Member -MemberType NoteProperty -Name 'AppName' -Value $app
+            $metrics | Add-Member -MemberType NoteProperty -Name 'Error' -Value $FALSE
+        }
+        else {
+            #$app + " - Nulo" | Out-File -Path ("Appdy_test"+$app2+".log") -Append
+            #$url | Out-File -Path ("Appdy_test"+$app2+".log") -Append
+            $metrics = [pscustomobject]::new()
+            $metrics | Add-Member -MemberType NoteProperty -Name 'AppName' -Value $app
+            $metrics | Add-Member -MemberType NoteProperty -Name 'Error' -Value $FALSE
+            return $metrics
+        }
+        
+        #Write-Host $metrics | ConvertTo-Json
+        return $metrics
+    }
+    catch
+    {
+        $status_code = $_.Exception.Response.StatusCode.value__
+        #Write-Host $_.Exception.Response
+        $error_message = $_.Exception.Message
+        #Write-Host "Error getting metrics : $StatusCode"
+        #Write-Host $url
+        #Write-Host $this.headers["Authorization"]
+        $metrics = [pscustomobject]::new()
+        $metrics | Add-Member -MemberType NoteProperty -Name 'AppName' -Value $app
+        $metrics | Add-Member -MemberType NoteProperty -Name 'Error' -Value $TRUE
+        $metrics | Add-Member -MemberType NoteProperty -Name 'Error Message' -Value "$status_code - $error_message"
+        return $metrics
+    }
+    
 }
