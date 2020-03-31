@@ -243,6 +243,30 @@ class Appdynamics {
         }
         return $success
     }
+    [System.Object[]] GetApplicationsJSON (){
+        $url = $this.baseurl+"/controller/rest/applications"+"?output=JSON"
+
+        try
+        {
+            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -Method Get -ContentType 'text/xml' -UseBasicParsing
+            $content = $responseData.content
+            $apps = ($content | ConvertFrom-Json)
+            #[xml]$apps = $content
+            return $apps
+        }
+        catch
+        {
+            $StatusCode = $_.Exception.Response.StatusCode.value__
+            #DEBUG#Write-Host $_.Exception.Response
+            #DEBUG#Write-Host $_.Exception.Message
+            #DEBUG#Write-Host "Error getting apps : $StatusCode"
+            #DEBUG#Write-Host $url
+            #DEBUG#Write-Host $this.headers["Authorization"]
+            return @()
+        }
+        return @()
+
+    }
     [bool] SendEvent ([string]$summary, [string]$comment, [string]$severity, [string]$customeventtype, [string]$tier, [string]$appID,[string]$tierID){
         $url = $this.baseurl+"/controller/rest/applications/" + $appID + "/events"
         
@@ -326,6 +350,45 @@ class Appdynamics {
             #DEBUG#Write-Host $this.headers["Authorization"]
             return "0"
         }
+    }
+    [System.Object[]] GetAllApplicationsSummary ($start_time, $end_time){
+        
+        $apps = $this.GetApplicationsJSON()
+        $filter_all = ""
+        $count = 0
+        foreach ($app in $apps) {
+            if ($count -eq ($apps.Count -1)) {
+                $filter_all += [string]$app.id
+            }
+            else {
+                $filter_all += [string]$app.id + ","
+            }
+            $count += 1  
+        }
+        #Write-Host $filter_all
+        $url = $this.baseurl+"/controller/restui/v1/app/list/ids"#+"?output=JSON"
+        try
+        {
+            $body = '{"requestFilter":['+$filter_all+'],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+',"searchFilters":null,"columnSorts":null,"resultColumns":["APP_OVERALL_HEALTH","CALLS","CALLS_PER_MINUTE","AVERAGE_RESPONSE_TIME","ERROR_PERCENT","ERRORS","ERRORS_PER_MINUTE"],"offset":0,"limit":-1}'
+            #Write-Host $body
+            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing
+            $content = $responseData.content
+            #$nodes = ($content | ConvertFrom-Json)
+            #DEBUG#Write-Host $responseData
+            return $content 
+        }
+        catch
+        {
+            $StatusCode = $_.Exception.Response.StatusCode.value__
+            #DEBUG#Write-Host $_.Exception.Response
+            #DEBUG#Write-Host $_.Exception.Message
+            #DEBUG#Write-Host "Error getting apps : $StatusCode"
+            #DEBUG#Write-Host $url
+            #DEBUG#Write-Host $this.headers["Authorization"]
+            return @("ERROR")
+        }
+        
+
     }
     [string[]] GetAllAppsEvents ($duration){
         ### Multithread
@@ -505,30 +568,6 @@ Function Job1 { $function:Job1  }
         return [xml]::new()
 
     }
-    [System.Object[]] GetApplicationsJSON (){
-        $url = $this.baseurl+"/controller/rest/applications"+"?output=JSON"
-
-        try
-        {
-            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -Method Get -ContentType 'text/xml' -UseBasicParsing
-            $content = $responseData.content
-            $apps = ($content | ConvertFrom-Json)
-            #[xml]$apps = $content
-            return $apps
-        }
-        catch
-        {
-            $StatusCode = $_.Exception.Response.StatusCode.value__
-            #DEBUG#Write-Host $_.Exception.Response
-            #DEBUG#Write-Host $_.Exception.Message
-            #DEBUG#Write-Host "Error getting apps : $StatusCode"
-            #DEBUG#Write-Host $url
-            #DEBUG#Write-Host $this.headers["Authorization"]
-            return @()
-        }
-        return [xml]::new()
-
-    }
     [System.Object[]] GetTiers ($appID){
         $appID = [uri]::EscapeDataString($appID)
         $url = $this.baseurl+"/controller/rest/applications/$appID/tiers"#+"?output=JSON"
@@ -628,6 +667,7 @@ Function Job1 { $function:Job1  }
         
 
     }
+
     [bool] DeleteApplication ([string]$appID){
         
         $url = $this.baseurl+"/controller/restui/allApplications/deleteApplication"#+"?output=JSON"
@@ -2235,7 +2275,12 @@ Function Job1 { $function:Job1  }
             #DEBUG#Write-Host $this.analyticsHeaders["Content-Encoding"]
             #DEBUG#Write-Host $this.analyticsHeaders["X-Events-API-Key"]
             #DEBUG#Write-Host $this.analyticsHeaders["X-Events-API-AccountName"]
-            return ""
+            if ($StatusCode -eq 409) {
+                return "$index Already Exist"
+            }
+            else {
+                return "Error: "+$_.Exception.Message
+            }
         }
 
     }
@@ -2258,9 +2303,9 @@ Function Job1 { $function:Job1  }
             
             
                 if ($bucketCount -gt 998) {
-                    $bucket | ConvertTo-Json | Out-File -FilePath ('./json' + $bucketList.count + '.json')
+                    #$bucket | ConvertTo-Json | Out-File -FilePath ('./json' + $bucketList.count + '.json')
                     $body = ($bucket | ConvertTo-Json)
-                    $body  | Out-File -FilePath ('./jsonDiego123.json')
+                    #$body  | Out-File -FilePath ('./jsonDiego123.json')
                     #Write-Host $body
                     #Write-Host ($this.analyticsHeaders | ConvertTo-Json)
                     #Write-Host $url
@@ -2309,7 +2354,6 @@ Function Job1 { $function:Job1  }
         #Invoke-RestMethod -Uri $url -Headers $this.analyticsHeaders -Body $bucket -Method Post -UseBasicParsing
         $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body ($bucket | ConvertTo-Json) -Method Post  -UseBasicParsing 
         #Write-Host $response
-        #Write-Host "Passei depois do 2 post"
         #Write-Host $responseData
         $bucketList += $bucket
         $bucket | ConvertTo-Json | Out-File -FilePath ('./json' + $bucketList.count + '.json')
@@ -2478,6 +2522,7 @@ function Start-MultiThreadAppdyJobs {
     #Write-Host $results
     return $results
 }
+
 function Start-MultiThreadAppdyEvents {
     param (
         $list,$params,$maxThreads
@@ -2600,4 +2645,11 @@ function GetMetricsJSON($baseurl,$headers,[string]$app,$metricPath,$duration) {
         return $metrics
     }
     
+}
+function ConvertTo-UnixTimestamp {
+	$epoch = Get-Date -Year 1970 -Month 1 -Day 1 -Hour 0 -Minute 0 -Second 0	
+ 	$input | ForEach-Object {		
+		$milliSeconds = [math]::truncate($_.ToUniversalTime().Subtract($epoch).TotalMilliSeconds)
+		Write-Output $milliSeconds
+	}	
 }
