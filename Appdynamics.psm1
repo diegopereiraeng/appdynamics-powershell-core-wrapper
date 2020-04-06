@@ -201,7 +201,7 @@ class Appdynamics {
         # Set Default Headers
         $this.headers.Add('Content-Type','application/json;charset=UTF-8')
         $this.headers.Add('X-CSRF-TOKEN',"")
-        $this.headers.Add('Authorization',$auth)
+        $this.headers.Add('Authorization',"Basic ")
         $this.headers.Add('Accept',"application/json, text/plain, */*")
         $this.headers.Add('Accept-Encoding','gzip, deflate, br')
         $this.headers.Add('Accept-Language','en-US,en;q=0.9')
@@ -2285,21 +2285,31 @@ Function Job1 { $function:Job1  }
 
     }
     [bool] PublishAnalyticsEvents ($index,$data){
-        $data = [Text.Encoding]::ASCII.GetString([Text.Encoding]::GetEncoding("Cyrillic").GetBytes($data))
+        $data2 = [Text.Encoding]::ASCII.GetString([Text.Encoding]::GetEncoding("Cyrillic").GetBytes($data))
         #Write-Host $this.analyticsAPIKey"-"$this.accountName
         $this.analyticsHeaders.'X-Events-API-Key' = $this.analyticsAPIKey
         $this.analyticsHeaders.'X-Events-API-AccountName' = $this.accountName
         
-        $url = $this.analyticsurl+"/events/publish/$index"
+        $url = $this.analyticsurl+"/events/publish/"+$index
         #DEBUG#Write-Host $url
         
 
-        $metricsCount = ($data | ConvertFrom-Json).count
+        #DEBUG#$metricsCount = ($data | ConvertFrom-Json).count
         $bucketList = @()
         $bucket = @()
         $bucketCount = 0
         #DEBUG#Write-Host "Metricas : $metricsCount"
-        foreach ($metricData in ($data | ConvertFrom-Json)) {
+
+        $json = @()
+        try {
+            $json = ($data2 | ConvertFrom-Json)
+        }
+        catch {
+            $data2 | Out-File -Path "DebugPublishEvents.log"
+            return $false
+        }
+        if ($json.count -gt 1) {
+            foreach ($metricData in $json) {
             
             
                 if ($bucketCount -gt 998) {
@@ -2320,9 +2330,9 @@ Function Job1 { $function:Job1  }
                         $responseData = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body ($bucket | ConvertTo-Json) -Method Post  -UseBasicParsing 
                         #$responseData = @{result = "OK"}
                         
-                        #Write-Host $responseData.Response 
+                        Write-Host $responseData.Response 
                         #Write-Host $responseData.StatusCode
-                        #Write-Host $responseData
+                        Write-Host $responseData
                     }
                     catch
                     {
@@ -2348,15 +2358,21 @@ Function Job1 { $function:Job1  }
 
                 $bucketCount++
                 #Write-Host $bucketCount
+            }
+            $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body ($bucket | ConvertTo-Json) -Method Post  -UseBasicParsing 
+            Write-Host $response
+            #Write-Host $responseData
+            $bucketList += $bucket
         }
+        else {
+            $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body ($json | ConvertTo-Json -AsArray) -Method Post  -UseBasicParsing 
+        }
+        
         #Write-Host $this.analyticsHeaders | ConvertTo-Json
 
         #Invoke-RestMethod -Uri $url -Headers $this.analyticsHeaders -Body $bucket -Method Post -UseBasicParsing
-        $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body ($bucket | ConvertTo-Json) -Method Post  -UseBasicParsing 
-        #Write-Host $response
-        #Write-Host $responseData
-        $bucketList += $bucket
-        $bucket | ConvertTo-Json | Out-File -FilePath ('./json' + $bucketList.count + '.json')
+        
+        #$bucket | ConvertTo-Json | Out-File -FilePath ('./json' + $bucketList.count + '.json')
         #Write-Host "Buckets : "$bucketList.Count
         #Write-Host $bucketList.GetType()
         #foreach ($bucketData in $bucketList) {
