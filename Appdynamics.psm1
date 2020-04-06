@@ -201,7 +201,7 @@ class Appdynamics {
         # Set Default Headers
         $this.headers.Add('Content-Type','application/json;charset=UTF-8')
         $this.headers.Add('X-CSRF-TOKEN',"")
-        $this.headers.Add('Authorization',"Basic ")
+        $this.headers.Add('Authorization',$auth)
         $this.headers.Add('Accept',"application/json, text/plain, */*")
         $this.headers.Add('Accept-Encoding','gzip, deflate, br')
         $this.headers.Add('Accept-Language','en-US,en;q=0.9')
