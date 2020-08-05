@@ -391,91 +391,6 @@ class Appdynamics {
         
 
     }
-    [System.Object[]] GetAppBTsSummary ($appID, $start_time, $end_time){
-        
-        
-        #Write-Host $filter_all
-        $url = $this.baseurl+"/controller/restui/v1/bt/listViewDataByColumns"#+"?output=JSON"
-        try
-        {
-            $body = '{"requestFilter":['+$appID+'],"searchFilters":null,"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+',"columnSorts":null,"resultColumns":["NAME","BT_HEALTH","AVERAGE_RESPONSE_TIME","CALL_PER_MIN","ERRORS_PER_MIN","PERCENTAGE_ERROR","PERCENTAGE_SLOW_TRANSACTIONS","PERCENTAGE_VERY_SLOW_TRANSACTIONS","PERCENTAGE_STALLED_TRANSACTIONS","TRANSACTION_SCORE","MAX_RESPONSE_TIME","MIN_RESPONSE_TIME","CALLS","TOTAL_ERRORS","STALLED_TRANSACTIONS","TIER","TYPE","SLOW_TRANSACTIONS","VERY_SLOW_TRANSACTIONS"],"offset":0,"limit":-1}'
-            #Write-Host $body
-
-            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing
-            $content = $responseData.content | ConvertFrom-Json
-            #$nodes = ($content | ConvertFrom-Json)
-            #DEBUG#Write-Host $responseData
-            return $content 
-        }
-        catch
-        {
-            $StatusCode = $_.Exception.Response.StatusCode.value__
-            #DEBUG#Write-Host $_.Exception.Response
-            #DEBUG#Write-Host $_.Exception.Message
-            #DEBUG#Write-Host "Error getting apps : $StatusCode"
-            #DEBUG#Write-Host $url
-            #DEBUG#Write-Host $this.headers["Authorization"]
-            return @("ERROR")
-        }
-        
-
-    }
-    [System.Object[]] GetReportingNodes ($appID, $start_time, $end_time){
-        
-        
-        #Write-Host $filter_all
-        $url = $this.baseurl+"/controller/restui/v1/nodes/list/health"#+"?output=JSON"
-        try
-        {
-            $body = '{"requestFilter":{"queryParams":{"applicationId":'+$appID+',"performanceDataFilter":"REPORTING"},"filters":[]},"resultColumns":["NODE_NAME","TIER"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"HEALTH","direction":"DESC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
-            #Write-Host $body
-
-            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing
-            $content = ($responseData.content | ConvertFrom-Json).data
-            #$nodes = ($content | ConvertFrom-Json)
-            #DEBUG#Write-Host $responseData
-            return $content 
-        }
-        catch
-        {
-            $StatusCode = $_.Exception.Response.StatusCode.value__
-            #DEBUG#Write-Host $_.Exception.Response
-            #DEBUG#Write-Host $_.Exception.Message
-            #DEBUG#Write-Host "Error getting apps : $StatusCode"
-            #DEBUG#Write-Host $url
-            #DEBUG#Write-Host $this.headers["Authorization"]
-            return @()
-        }
-        
-
-    }
-    [System.Object[]] AddScoreCardAppBTsSummary([System.Object[]]$appBTsSummary){
-
-        foreach ($bt in $appBTsSummary.btListEntries) {
-            if ($bt.numberOfCalls -gt 0) {
-                $normalCalls = $bt.numberOfCalls
-                if ($bt.stalls -gt 0) {
-                    $normalCalls = $normalCalls - $bt.stalls
-                }
-                if ($bt.numberOfErrors -gt 0) {
-                    $normalCalls = $normalCalls - $bt.numberOfErrors
-                }
-                if ($bt.slow -gt 0) {
-                    $normalCalls = $normalCalls - $bt.slow
-                }
-                if ($bt.extremelySlow -gt 0) {
-                    $normalCalls = $normalCalls - $bt.extremelySlow
-                }
-                $bt | Add-Member -MemberType NoteProperty -Name 'ScoreCard' -Value (($normalCalls*100)/$bt.numberOfCalls)
-            }
-            else {
-                $bt | Add-Member -MemberType NoteProperty -Name 'ScoreCard' -Value 100
-            }
-            $bt | Add-Member -MemberType NoteProperty -Name 'Application' -Value $appBTsSummary.applicationEntity.name
-        }
-        return $appBTsSummary
-    }
-
     [string[]] GetAllAppsEvents ($duration){
         ### Multithread
         $MaxThreads = 16
@@ -830,30 +745,26 @@ Function Job1 { $function:Job1  }
         return [xml]::new()
 
     }
-    [System.Object] GetNodeInfo ($nodeID){
-        $source = "GetNodeInfo"
-
-        #$this.Log($source,"INFO","Getting Info from nodeID:"+$nodeID)
-
+    [System.Object] GetNodeInfo ([string]$nodeID){
+        
         $url = $this.baseurl+"/controller/restui/nodeUiService/node/$nodeID"#+"?output=JSON"
         try
         {
             $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Method Get -UseBasicParsing
             $content = $responseData.content
             $node = ($content | ConvertFrom-Json)
-            #$this.Log($source,"DEBUG",$responseData)
+            #DEBUG#Write-Host $responseData
             return $node
         }
         catch
         {
             $StatusCode = $_.Exception.Response.StatusCode.value__
-            $this.Log($source,"ERROR",$_.Exception.Response)
-            $this.Log($source,"ERROR",$nodeID)
-            $this.Log($source,"ERROR",$_.Exception.Message)
-            $this.Log($source,"ERROR","Error getting apps : $StatusCode")
-            $this.Log($source,"ERROR",$url)
-            $this.Log($source,"ERROR",$this.headers["Authorization"])
-            return $null
+            #DEBUG#Write-Host $_.Exception.Response
+            #DEBUG#Write-Host $_.Exception.Message
+            #DEBUG#Write-Host "Error getting apps : $StatusCode"
+            #DEBUG#Write-Host $url
+            #DEBUG#Write-Host $this.headers["Authorization"]
+            return [System.Object]::new()
         }
         
 
