@@ -427,7 +427,7 @@ class Appdynamics {
         $url = $this.baseurl+"/controller/restui/v1/nodes/list/health"#+"?output=JSON"
         try
         {
-            $body = '{"requestFilter":{"queryParams":{"applicationId":'+$appID+',"performanceDataFilter":"REPORTING"},"filters":[]},"resultColumns":["NODE_NAME","TIER"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"HEALTH","direction":"DESC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            $body = '{"requestFilter":{"queryParams":{"applicationId":'+$appID+',"performanceDataFilter":"REPORTING"},"filters":[]},"resultColumns":["NODE_NAME","TIER"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"TIER","direction":"ASC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
             #Write-Host $body
 
             $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing
@@ -444,9 +444,11 @@ class Appdynamics {
         }
         catch
         {
+            $body = '{"requestFilter":{"queryParams":{"applicationId":'+$appID+',"performanceDataFilter":"REPORTING"},"filters":[]},"resultColumns":["NODE_NAME","TIER"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"TIER","direction":"ASC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
             $StatusCode = $_.Exception.Response.StatusCode.value__
             $this.Log($source,"ERROR",$_.Exception.Response)
             $this.Log($source,"ERROR","APPID: $appID - START: $start_time - END: $end_time")
+            $this.Log($source,"ERROR","Body: $body")
             $this.Log($source,"ERROR",$_.Exception.Message)
             $this.Log($source,"ERROR","Error getting nodes reporting : $StatusCode")
             $this.Log($source,"ERROR",$url)
