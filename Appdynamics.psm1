@@ -422,7 +422,7 @@ class Appdynamics {
     }
     [System.Object[]] GetReportingNodes ($appID, $start_time, $end_time){
         
-        
+        $source = "GetReportingNodes"
         #Write-Host $filter_all
         $url = $this.baseurl+"/controller/restui/v1/nodes/list/health"#+"?output=JSON"
         try
@@ -431,20 +431,27 @@ class Appdynamics {
             #Write-Host $body
 
             $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing
-            $content = ($responseData.content | ConvertFrom-Json).data
-            #$nodes = ($content | ConvertFrom-Json)
-            #DEBUG#Write-Host $responseData
+            if (($responseData.content | ConvertFrom-Json).totalCount -eq 0 ) {
+                return @()
+            }
+            else {
+                $content = ($responseData.content | ConvertFrom-Json).data
+                #$nodes = ($content | ConvertFrom-Json)
+                #DEBUG#Write-Host $responseData
             return $content 
+            }
+            
         }
         catch
         {
             $StatusCode = $_.Exception.Response.StatusCode.value__
-            #DEBUG#Write-Host $_.Exception.Response
-            #DEBUG#Write-Host $_.Exception.Message
-            #DEBUG#Write-Host "Error getting apps : $StatusCode"
-            #DEBUG#Write-Host $url
-            #DEBUG#Write-Host $this.headers["Authorization"]
-            return @()
+            $this.Log($source,"ERROR",$_.Exception.Response)
+            $this.Log($source,"ERROR","APPID: $appID - START: $start_time - END: $end_time")
+            $this.Log($source,"ERROR",$_.Exception.Message)
+            $this.Log($source,"ERROR","Error getting nodes reporting : $StatusCode")
+            $this.Log($source,"ERROR",$url)
+            $this.Log($source,"ERROR",$this.headers["Authorization"])
+            return @("ERROR")
         }
         
 
