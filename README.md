@@ -10,7 +10,7 @@ I have created some scripts using this wrapper for different proposes, and I'm s
 
 Appdynamics Internal APIs (RestUI) are not supported by Appdynamics, only the public APIs, so if it broke in future versions or older versions, please let me know, so I and others contributors can try solve the problem.
 
-I tested only in controller versions: 4.5.15, 4.5.16 and 4.5.17
+I tested only in controller versions: 4.5.15, 4.5.16, 4.5.17, 20.4, 20.7.
 
 For future versions we will try to solve internal api changes as fast as we can, but there is no SLA and time to solve, so create a issue and we will try to help you.
 
