@@ -2555,7 +2555,8 @@ Function Job1 { $function:Job1  }
         }
         else {
             try {
-                $body = ($bucket | ConvertTo-Json -AsArray)
+                $this.Log($source,"DEBUG",($json | ConvertTo-Json -AsArray))
+                $body = ($json | ConvertTo-Json -AsArray)
                 $body | Out-File -FilePath ('./bucket_single.json')
                 $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body $body -Method Post  -UseBasicParsing 
                 $this.Log($source,"DEBUG","Success publishing one event")
@@ -2568,7 +2569,6 @@ Function Job1 { $function:Job1  }
                 #DEBUG#Write-Host $_.Exception
                 $this.Log($source,"ERROR","Publishing Event - One")
                 $this.Log($source,"ERROR","$StatusCode - $error_message - $error_response") 
-
             }
         }
         
