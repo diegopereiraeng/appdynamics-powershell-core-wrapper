@@ -11,19 +11,19 @@ $start = Get-Date
 
 $list = @(
     @{name = "HML_CORPORATE_MANAGEDPORTFOLIO"},
-    @{name = "PRD_XP_EBIX"},
-    @{name = "XP_Institution"},
+    @{name = "PRD_COMPANY_EBIX"},
+    @{name = "COMPANY_Institution"},
     @{name = "PRD_CLEAR.FEEDS"},
-    @{name = "HML_XP_PORTFOLIO"},
+    @{name = "HML_COMPANY_PORTFOLIO"},
     @{name = "PRD_RICO.HB"},
     @{name = "Corporate_B2B"},
     @{name = "PRD_RICO.UMDF"},
-    @{name = "PRD_XP.CLIENT_INFORMATION"},
-    @{name = "HML_XP_CUSTOMERSERVICE"})
+    @{name = "PRD_COMPANY.CLIENT_INFORMATION"},
+    @{name = "HML_COMPANY_CUSTOMERSERVICE"})
 
     $list = @(
     @{name = "HML_CORPORATE_MANAGEDPORTFOLIO"},
-    @{name = "PRD_XP_EBIX"})
+    @{name = "PRD_COMPANY_EBIX"})
 
 
 $metricALL = @{metricALL = "Overall Application Performance|*|*"; duration = "1600"}

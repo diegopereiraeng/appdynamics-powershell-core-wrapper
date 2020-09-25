@@ -15,7 +15,7 @@ $appdy.SetAnalytics($apiKey,$accountName)
 $startTime = (([int](Get-Date -UFormat "%s")) * 1000) + 60000
 $startTime
 
-$results = $appdy.GetAnalyticsEvents('SELECT series(eventTimestamp, "1m") AS Time, substring(browserRecords.pagename, 19) AS "Page Name", distinctcount(sessionguid) AS "Active Sessions" FROM web_session_records WHERE browserRecords.pagename REGEXP "portal.*"',"start=$startTime")
+$results = $appdy.GetAnalyticsEvents('SELECT series(eventTimestamp, "1m") AS Time, substring(browserRecords.pagename, 19) AS "Page Name", distinctcount(sessionguid) AS "Active Sessions" FROM web_session_records WHERE browserRecords.pagename REGECOMPANY."portal.*"',"start=$startTime")
 
 foreach ($result in $results.results) {
     Write-Host ($result | ConvertTo-Json)
@@ -74,8 +74,8 @@ $report | Add-Content -Path ./test.json #>
 
 $data1 = '[
     {
-      "Application": "XPVP_PensionFunds",
-      "Tier": "XPVP.PensionFunds.Core",
+      "Application": "COMPANY.P_PensionFunds",
+      "Tier": "COMPANY.P.PensionFunds.Core",
       "Calls": 114668,
       "Avg_RT": 0,
       "Errors_Perc": 0.0,
@@ -86,7 +86,7 @@ $data1 = '[
       "Stalls": 0
     },
     {
-      "Application": "PRD_XP.HomeBroker",
+      "Application": "PRD_COMPANY.HomeBroker",
       "Tier": "Mídia/portal",
       "Calls": 6,
       "Avg_RT": 37,
@@ -99,10 +99,10 @@ $data1 = '[
     }
   ]'
 
-$data =  '[{"Application": "XPVP_PensionFunds","Tier": "XPVP.PensionFunds.Core","Calls": 114668,"Avg_RT": 0,"Errors_Perc": 0.0,"Score_Card": 100.0,"Errors": 0,"Slows": 1,"Very_Slows": 1,"Stalls": 0}]'
+$data =  '[{"Application": "COMPANY.P_PensionFunds","Tier": "COMPANY.P.PensionFunds.Core","Calls": 114668,"Avg_RT": 0,"Errors_Perc": 0.0,"Score_Card": 100.0,"Errors": 0,"Slows": 1,"Very_Slows": 1,"Stalls": 0}]'
 
-$data3 = '[{"Application":"XPVP_PensionFunds","Tier":"XPVP.PensionFunds.Core","Calls":114668,"Avg_RT":0,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":1,"Very_Slows":1,"Stalls":0},{"Application":"PRD_XP.HomeBroker","Tier":"Mídia/portal","Calls":6,"Avg_RT":37,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":0,"Very_Slows":0,"Stalls":0}]'
-$data3 = '[{"Application":"XPVP_PensionFunds","Tier":"XPVP/PensionFunds.Core","Calls":114668,"Avg_RT":0,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":1,"Very_Slows":1,"Stalls":0},{"Application":"PRD_XP.HomeBroker","Tier":"Mídia/portal","Calls":6,"Avg_RT":37,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":0,"Very_Slows":0,"Stalls":0}]'
+$data3 = '[{"Application":"COMPANY.P_PensionFunds","Tier":"COMPANY.P.PensionFunds.Core","Calls":114668,"Avg_RT":0,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":1,"Very_Slows":1,"Stalls":0},{"Application":"PRD_COMPANY.HomeBroker","Tier":"Mídia/portal","Calls":6,"Avg_RT":37,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":0,"Very_Slows":0,"Stalls":0}]'
+$data3 = '[{"Application":"COMPANY.P_PensionFunds","Tier":"COMPANY.P/PensionFunds.Core","Calls":114668,"Avg_RT":0,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":1,"Very_Slows":1,"Stalls":0},{"Application":"PRD_COMPANY.HomeBroker","Tier":"Mídia/portal","Calls":6,"Avg_RT":37,"Errors_Perc":0.0,"Score_Card":100.0,"Errors":0,"Slows":0,"Very_Slows":0,"Stalls":0}]'
 
 $data3 = [Text.Encoding]::ASCII.GetString([Text.Encoding]::GetEncoding("Cyrillic").GetBytes($data3))
 
@@ -210,10 +210,10 @@ $report  | Export-Csv '/Users/dieperei/Documents/Development/Powershell/tiers5.c
 
 #$appdy.GetFileToken()
 
-<# $appID = $appdy.GetAppID("HML_XP_FIXEDINCOME")
+<# $appID = $appdy.GetAppID("HML_COMPANY_FIXEDINCOME")
 Write-Host "AppID : $appID"
 
-$tierID = $appdy.GetTierID($appID, "XP.FixedIncome.Asset.Web")
+$tierID = $appdy.GetTierID($appID, "COMPANY.FixedIncome.Asset.Web")
 
 Write-Host "tierID : $tierID"
  #>

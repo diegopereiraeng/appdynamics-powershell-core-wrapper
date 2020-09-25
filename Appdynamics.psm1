@@ -11,11 +11,11 @@ $auth = Get-AuthorizationHeader -pair "user@account:password"
 
 $appdy = [Appdynamics]::new("https://customer.saas.appdynamics.com",$auth)
 
-$appID = $appdy.GetAppID("HML_XP_FIXEDINCOME")
+$appID = $appdy.GetAppID("HML_COMPANY_FIXEDINCOME")
 
 #DEBUG#Write-Host "AppID : $appID"
 
-$tierID = $appdy.GetTierID($appID, "XP.FixedIncome.Asset.Web")
+$tierID = $appdy.GetTierID($appID, "COMPANY.FixedIncome.Asset.Web")
 
 appdy.SendEvent("New Deployment Diego", "This is a test", "INFO", "VSTS", $tierName, $appID,$tierID)
 
@@ -2063,7 +2063,7 @@ Function Job1 { $function:Job1  }
             
             #$listApps = @(
             #    @{name = "HML_CORPORATE_MANAGEDPORTFOLIO"},
-            #    @{name = "PRD_XP_EBIX"})
+            #    @{name = "PRD_COMPANY_EBIX"})
 
             $results = Start-MultiThreadAppdyJobs -list $listApps -script './AppdyMultiMetrics.ps1' -maxThreads $MaxThreads -params $jobParam
             #Write-Host "Results: "$results.count
@@ -2587,7 +2587,7 @@ Function Job1 { $function:Job1  }
         return $TRUE
         
 
-    }
+    } 
     [pscustomobject] GetAnalyticsSchema ($index){
         
         #Write-Host $this.analyticsAPIKey"-"$this.accountName
