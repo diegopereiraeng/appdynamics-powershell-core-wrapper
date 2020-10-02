@@ -208,7 +208,7 @@ class Appdynamics {
         $this.headers.Add('Accept-Language','en-US,en;q=0.9')
         $this.headers.Add('Sec-Fetch-Mode','cors')
         # Set Default Analytics Headers
-        $this.analyticsHeaders.Add("Content-Type","application/vnd.appd.events+json")
+        $this.analyticsHeaders.Add("Content-Type",'application/vnd.appd.events+json')
         $this.analyticsHeaders.Add('X-Events-API-Key',"")
         $this.analyticsHeaders.Add('X-Events-API-AccountName',"")
 
@@ -450,6 +450,134 @@ class Appdynamics {
             $this.Log($source,"ERROR","APPID: $appID - START: $start_time - END: $end_time")
             $this.Log($source,"ERROR","Body: $body")
             $this.Log($source,"ERROR",$_.Exception.Message)
+            $this.Log($source,"ERROR","Error getting nodes reporting : $StatusCode")
+            $this.Log($source,"ERROR",$url)
+            $this.Log($source,"ERROR",$this.headers["Authorization"])
+            return @("ERROR")
+        }
+        
+
+    }
+    #https://localizabrasil.saas.appdynamics.com/controller/restui/backend/list/database
+    [System.Object[]] GetReportingDatabases ($appID, $start_time, $end_time){
+        
+        $source = "GetReportingDatabases"
+        #Write-Host $filter_all
+        $url = $this.baseurl+"/controller/restui/backend/list/database"#+"?output=JSON"
+        try
+        {
+            #$body = '{"requestFilter":{"queryParams":{"applicationId":'+$appID+',"performanceDataFilter":"REPORTING"},"filters":[]},"resultColumns":["NODE_NAME","TIER"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"TIER","direction":"ASC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            $body = '{"requestFilter":{"queryParams":{"applicationId":'+$appID+'},"filters":[]},"resultColumns":["ID","NAME","TYPE"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            #Write-Host $body
+
+            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing
+            if (($responseData.content | ConvertFrom-Json).totalCount -eq 0 ) {
+                return @()
+            }
+            else {
+                $content = ($responseData.content | ConvertFrom-Json).data
+                #$nodes = ($content | ConvertFrom-Json)
+                #DEBUG#Write-Host $responseData
+            return $content 
+            }
+            
+        }
+        catch
+        {
+            $body = '{"requestFilter":{"queryParams":{"applicationId":'+$appID+'},"filters":[]},"resultColumns":["ID","NAME","TYPE"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            $StatusCode = $_.Exception.Response.StatusCode.value__
+            $this.Log($source,"ERROR",$_.Exception.Response)
+            $this.Log($source,"ERROR","APPID: $appID - START: $start_time - END: $end_time")
+            $this.Log($source,"ERROR","Body: $body")
+            $this.Log($source,"ERROR",$_.Exception.Message)
+            $this.Log($source,"ERROR","Error getting nodes reporting : $StatusCode")
+            $this.Log($source,"ERROR",$url)
+            $this.Log($source,"ERROR",$this.headers["Authorization"])
+            return @("ERROR")
+        }
+        
+
+    }
+
+    [System.Collections.ArrayList] GetReportingNodesInfo ($ids, $start_time, $end_time){
+        
+        $source = "GetReportingNodesInfo"
+        #Write-Host $filter_all
+        $url = $this.baseurl+"/controller/restui/v1/nodes/list/health/ids"#+"?output=JSON"
+        try
+        {
+            $body = '{"requestFilter":'+$ids+',"resultColumns":["HEALTH","APP_AGENT_STATUS","APP_AGENT_VERSION","VM_RUNTIME_VERSION","LAST_APP_SERVER_RESTART_TIME","MACHINE_AGENT_STATUS"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"TIER","direction":"ASC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            Write-Host $body
+
+            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing
+            if (($responseData.content | ConvertFrom-Json).totalCount -eq 0 ) {
+                return [System.Collections.ArrayList]@()
+            }
+            else {
+                $content = ($responseData.content | ConvertFrom-Json).data
+                #$nodes = ($content | ConvertFrom-Json)
+                #DEBUG#Write-Host $responseData
+            return [System.Collections.ArrayList]$content 
+            }
+            
+        }
+        catch
+        {
+            $body = '{"requestFilter":'+$ids+',"resultColumns":["HEALTH","APP_AGENT_STATUS","APP_AGENT_VERSION","VM_RUNTIME_VERSION","LAST_APP_SERVER_RESTART_TIME","MACHINE_AGENT_STATUS"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"TIER","direction":"ASC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            $StatusCode = $_.Exception.Response.StatusCode.value__
+            $this.Log($source,"ERROR",$_.Exception.Response)
+            $this.Log($source,"ERROR","IDS: $ids - START: $start_time - END: $end_time")
+            $this.Log($source,"ERROR","Body: $body")
+            $this.Log($source,"ERROR",$_.Exception.Message)
+            $this.Log($source,"ERROR","Error getting nodes reporting : $StatusCode")
+            $this.Log($source,"ERROR",$url)
+            $this.Log($source,"ERROR",$this.headers["Authorization"])
+            return @("ERROR")
+        }
+        
+
+    }
+    #
+    [System.Collections.ArrayList] GetReportingNodesMachineInfo ($ids, $start_time, $end_time){
+        
+        $source = "GetReportingNodesMachineInfo"
+        #Write-Host $filter_all
+        $url = $this.baseurl+"/controller/restui/agents/list/appserver/ids"#+"?output=JSON"
+        try
+        {
+            
+            $body = '{"requestFilter":'+$ids+',"resultColumns":["HOST_NAME","AGENT_VERSION","NODE_NAME","COMPONENT_NAME","APPLICATION_NAME","DISABLED","ALL_MONITORING_DISABLED"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"HOST_NAME","direction":"ASC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            #Write-Host $body
+
+            $responseData = Invoke-WebRequest -Uri $url -Headers $this.headers -WebSession $this.session -Body $body -Method Post -UseBasicParsing -ContentType "application/json"
+
+            #$this.Log($source,"DEBUG","Response: "+$responseData)
+
+            if (($responseData.content | ConvertFrom-Json).totalCount -eq 0 ) {
+                $this.Log($source,"DEBUG","No Data for ids [$ids]")
+                return [System.Collections.ArrayList]@()
+            }
+            else {
+                $content = ($responseData.content | ConvertFrom-Json).data
+                #$nodes = ($content | ConvertFrom-Json)
+                #DEBUG#Write-Host $responseData
+            return [System.Collections.ArrayList]$content 
+            }
+            
+        }
+        catch
+        {
+            $body = '{"requestFilter":'+$ids+',"resultColumns":["HOST_NAME","AGENT_VERSION","NODE_NAME","COMPONENT_NAME","APPLICATION_NAME","DISABLED","ALL_MONITORING_DISABLED"],"offset":0,"limit":-1,"searchFilters":[],"columnSorts":[{"column":"HOST_NAME","direction":"ASC"}],"timeRangeStart":'+$start_time+',"timeRangeEnd":'+$end_time+'}'
+            $StatusCode = $_.Exception.Response.StatusCode.value__
+            $this.Log($source,"ERROR",$_.Exception.Response)
+            $this.Log($source,"ERROR","IDS: $ids - START: $start_time - END: $end_time")
+            $this.Log($source,"ERROR","Body: $body")
+            $this.Log($source,"ERROR",$_.Exception.Message)
+            $this.Log($source,"ERROR",$_.Exception.ToString())
+            $this.Log($source,"ERROR",$_.Exception.InnerException.Message)
+            $this.Log($source,"ERROR",$_.Exception.Source)
+            $this.Log($source,"ERROR",$_.Exception.StackTrace.ToString())
+            $this.Log($source,"ERROR",$_.Exception.Data.Values)
             $this.Log($source,"ERROR","Error getting nodes reporting : $StatusCode")
             $this.Log($source,"ERROR",$url)
             $this.Log($source,"ERROR",$this.headers["Authorization"])
@@ -2375,6 +2503,8 @@ Function Job1 { $function:Job1  }
 
     }
     [string] CreateAnalyticsSchema ($index,$schema){
+
+        $source = "CreateAnalyticsSchema"
         
         #Write-Host $this.analyticsAPIKey"-"$this.accountName
         $this.analyticsHeaders.'X-Events-API-Key' = $this.analyticsAPIKey
@@ -2384,7 +2514,7 @@ Function Job1 { $function:Job1  }
         #Write-Host $url
         try
         {
-            Invoke-RestMethod -Uri $url -Headers $this.analyticsHeaders -Body $schema -Method Post -ContentType 'application/vnd.appd.events+json'  -UseBasicParsing
+            Invoke-RestMethod -Uri $url -Headers $this.analyticsHeaders -Body $schema -Method Post -ContentType 'application/vnd.appd.events+json;v=2'  -UseBasicParsing
              
             #Write-Host $responseData | Format-Table
             return $index
@@ -2392,14 +2522,16 @@ Function Job1 { $function:Job1  }
         catch
         {
             $StatusCode = $_.Exception.Response.StatusCode.value__
-            #DEBUG#Write-Host $_.Exception.Response
-            #DEBUG#Write-Host $_.Exception.Message
-            #DEBUG#Write-Host "Error getting apps : $StatusCode"
-            #DEBUG#Write-Host $url
-            #DEBUG#Write-Host $schema
-            #DEBUG#Write-Host $this.analyticsHeaders["Content-Encoding"]
-            #DEBUG#Write-Host $this.analyticsHeaders["X-Events-API-Key"]
-            #DEBUG#Write-Host $this.analyticsHeaders["X-Events-API-AccountName"]
+            $this.Log($source,"ERROR","Creating Schema - Code: $StatusCode")
+            $this.Log($source,"ERROR",$_.Exception.Message)
+            $this.Log($source,"ERROR",$_.Exception.Data)
+            $this.Log($source,"ERROR",$_.Exception.HResult)
+            $this.Log($source,"ERROR",$_.Exception.Source )
+            $this.Log($source,"ERROR",$_.Exception.ToString() )
+            $this.Log($source,"ERROR",$_.Exception.StackTrace.ToString() )
+            $this.Log($source,"ERROR","URL : $url" )
+            $this.Log($source,"ERROR","Schema : " + $schema)
+
             if ($StatusCode -eq 409) {
                 return "$index Already Exist"
             }
@@ -2409,22 +2541,30 @@ Function Job1 { $function:Job1  }
         }
 
     }
-    Log ($source,$message,$severity){
+    Log ($source,$severity,$message){
         $log = "Appdynamics.log"
 
         
         if (($this.debug) -OR $severity -ne "DEBUG") {
-            if (((Get-Item $log).length/1MB) > 5){
+            if (((Get-Item $log).length/1MB) -gt 5){
             
                 Copy-Item $log -Destination ($log+".0") -Force -Confirm
                 Remove-Item $log
             }
-            (Get-Date -Format "yyyy-MM-dd HH:mm:ss")+" - "+$source+" - "+$severity+" - "+$message | Out-File -Append -FilePath $log    
+            (Get-Date -Format "yyyy-MM-dd HH:mm:ss")+" - "+$severity+" - "+$source+" - "+$message | Out-File -Append -FilePath $log    
         }
         
     }
     [bool] PublishAnalyticsEvents ($index,$data){
         $source = "PublishAnalyticsEvents"
+
+        <# try {
+            $data2 = $data | ConvertTo-Json
+        }
+        catch {
+            $data2 = $data
+        } #>
+
         try {
             $data2 = [Text.Encoding]::ASCII.GetString([Text.Encoding]::GetEncoding("Cyrillic").GetBytes($data))    
         }
@@ -2487,7 +2627,7 @@ Function Job1 { $function:Job1  }
                     #Write-Host "Rodei post"
                     try
                     {
-                        $responseData = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body $body -Method Post  -UseBasicParsing 
+                        $responseData = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body $body -Method Post  -UseBasicParsing  -ContentType 'application/vnd.appd.events+json;v=2'
                         #$responseData = @{result = "OK"}
                         
                         #Write-Host $responseData.Response 
@@ -2506,6 +2646,10 @@ Function Job1 { $function:Job1  }
                         $this.Log($source,"ERROR","Publishing Events - bucket $buckets_count - Loop")
                         $this.Log($source,"ERROR",($_.Exception.InnerException.Message+" --- "+$_.Exception.InnerException.Data+" --- "+$_.Exception.InnerException.Source ))
                         $this.Log($source,"ERROR","$error_source - $StatusCode - $error_message - $error_response")
+                        $this.Log($source,"ERROR",$_.Exception.HResult)
+                        $this.Log($source,"ERROR",$_.Exception.Source )
+                        $this.Log($source,"ERROR",$_.Exception.ToString() )
+                        $this.Log($source,"ERROR",$_.Exception.StackTrace.ToString() )
                         
                         #DEBUG#Write-Host "Error getting apps : $StatusCode"
                         #DEBUG#Write-Host $url
@@ -2534,8 +2678,9 @@ Function Job1 { $function:Job1  }
                 
                 $this.Log($source,"DEBUG","Bucket $buckets_count size: $body_size")
                 #$body | Out-File -FilePath ('./bucket'+$buckets_count+'.json')
-                $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body $body -Method Post  -UseBasicParsing 
-                Write-Host $response
+                $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body $body -Method Post  -UseBasicParsing -ContentType 'application/vnd.appd.events+json;v=2'
+
+                $this.Log($source,"DEBUG","Analytics Response"+$response)
                 #Write-Host $responseData
                 $this.Log($source,"DEBUG","Success publishing bucket $buckets_count - Status Code "+[string]$response.Response.StatusCode.value__)
             }
@@ -2547,9 +2692,16 @@ Function Job1 { $function:Job1  }
                 #DEBUG#Write-Host $_.Exception.Message
                 #DEBUG#Write-Host $_.Exception
                 $this.Log($source,"ERROR","Publishing Events - Last")
-                $this.Log($source,"ERROR",($_.Exception.InnerException.Message+" --- "+$_.Exception.InnerException.Data+" --- "+$_.Exception.InnerException.Source ))
+                $this.Log($source,"ERROR",($_.Exception.Message+" --- "+$_.Exception.Data+" --- "+$_.Exception.Source ))
                 $this.Log($source,"ERROR","$error_source - $StatusCode - $error_message - $error_response")
-                    
+                $this.Log($source,"ERROR",$_.Exception.HResult)
+                $this.Log($source,"ERROR",$_.Exception.ToString() )
+                $this.Log($source,"ERROR",$_.Exception.StackTrace.ToString() )
+                $this.Log($source,"ERROR",("Bucket count"+ $bucket.count ) )
+                $this.Log($source,"ERROR",("URL"+ $url ) )
+
+
+                        
             }
             $this.Log($source,"DEBUG","Published "+$bucket.Count+" buckets")
         }
@@ -2558,7 +2710,7 @@ Function Job1 { $function:Job1  }
                 $this.Log($source,"DEBUG",($json | ConvertTo-Json -AsArray))
                 $body = ($json | ConvertTo-Json -AsArray)
                 $body | Out-File -FilePath ('./bucket_single.json')
-                $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body $body -Method Post  -UseBasicParsing 
+                $response = Invoke-WebRequest -Uri $url -Headers $this.analyticsHeaders -Body $body -Method Post  -UseBasicParsing -ContentType 'application/vnd.appd.events+json;v=2'
                 $this.Log($source,"DEBUG","Success publishing one event")
             }
             catch {
@@ -2569,6 +2721,10 @@ Function Job1 { $function:Job1  }
                 #DEBUG#Write-Host $_.Exception
                 $this.Log($source,"ERROR","Publishing Event - One")
                 $this.Log($source,"ERROR","$StatusCode - $error_message - $error_response") 
+                $this.Log($source,"ERROR",$_.Exception.HResult)
+                $this.Log($source,"ERROR",$_.Exception.Source )
+                $this.Log($source,"ERROR",$_.Exception.ToString() )
+                $this.Log($source,"ERROR",$_.Exception.StackTrace.ToString() )
             }
         }
         
@@ -2873,3 +3029,4 @@ function ConvertTo-UnixTimestamp {
 		Write-Output $milliSeconds
 	}	
 }
+
